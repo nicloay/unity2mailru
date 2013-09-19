@@ -1,0 +1,32 @@
+#!/bin/bash
+
+installPath=$1;
+# The type of player built:
+# "dashboard", "standaloneWin32", "standaloneOSXIntel", "standaloneOSXPPC", "standaloneOSXUniversal", "webplayer"
+target=$2;
+# What optimizations are applied. At the moment either "" or "strip" when Strip debug symbols is selected.
+optimization=$3;
+# The name of the company set in the project settings
+companyName=$4;
+# The name of the product set in the project settings
+productName=$5;
+# The default screen width of the player.
+width=$6;
+# The default screen height of the player
+height=$7;
+
+remoteFolder="root@nicloay.com:/usr/share/nginx/betatest/jamr";
+
+
+if [ "$target" == "webplayer" ];
+then
+    cd "$installPath";
+    buildFileName=$(ls|grep 'unity3d$');
+    cleanName=$(echo $buildFileName|sed 's/.unity3d//');
+    mv $cleanName.html jamr.html;
+
+    find . -name '*.meta' -exec rm -rf {} \;
+
+    scp -r * $remoteFolder;
+    ssh root@nicloay.com "chmod a+rwx /usr/share/nginx/betatest/jamr/tmpimg";
+fi
