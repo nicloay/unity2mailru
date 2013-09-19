@@ -6,12 +6,18 @@ using System;
 public class MRUController : MonoSingleton<MRUController> {
 	CallbackPool callbackPool;
 	public string privateKey;
+	public bool initOnStart=false;
 	public Action<object> onApiReady;
 	
 	public override void Init ()
 	{
 		base.Init ();		
 		
+		if (initOnStart)
+			initializeMailRuApi();		
+	}
+	
+	public void initializeMailRuApi(){
 		callbackPool = CallbackPool.instance;
 		callbackPool.initialize();
 		initMailruApi(privateKey, delegate(object obj,Callback callback){
@@ -20,7 +26,6 @@ public class MRUController : MonoSingleton<MRUController> {
 			Debug2.LogDebug("mail ru api ready");				
 		});
 	}
-	
 	
 	public static void initMailruApi(string privateKey, Action<object, Callback> onInitDone){		
 		Callback c = CallbackPool.instance.getCallback(CallbackType.DISPOSABLE);
