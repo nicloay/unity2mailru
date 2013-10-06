@@ -8,6 +8,7 @@ public class MRUController : MonoSingleton<MRUController> {
 	public string privateKey;
 	public bool initOnStart=false;
 	public Action<object> onApiReady;
+	public Dictionary<string,object> mailruSession;
 	
 	public override void Init ()
 	{
@@ -23,6 +24,7 @@ public class MRUController : MonoSingleton<MRUController> {
 		initMailruApi(privateKey, delegate(object obj,Callback callback){
 			if (onApiReady!=null)
 				onApiReady(obj);
+			mailruSession = obj;
 			Debug2.LogDebug("mail ru api ready");				
 		});
 	}
