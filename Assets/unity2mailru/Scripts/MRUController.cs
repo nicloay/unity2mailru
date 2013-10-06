@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(CallbackPool))]
 public class MRUController : MonoSingleton<MRUController> {
@@ -24,7 +25,7 @@ public class MRUController : MonoSingleton<MRUController> {
 		initMailruApi(privateKey, delegate(object obj,Callback callback){
 			if (onApiReady!=null)
 				onApiReady(obj);
-			mailruSession = obj;
+			mailruSession = obj as Dictionary<string,object>;
 			Debug2.LogDebug("mail ru api ready");				
 		});
 	}
