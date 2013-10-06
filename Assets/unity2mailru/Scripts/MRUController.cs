@@ -42,22 +42,6 @@ public class MRUController : MonoSingleton<MRUController> {
 	}
 	
 	
-	
-	public void callMailruByCallbackAndParams(string functionName, Action<object, Callback> action, params string[] parameters){				
-		Callback callback = callbackPool.getCallback(CallbackType.DISPOSABLE);
-		callback.action = action;
-		string functionParmas=string.Join("', '",parameters);
-		functionParmas = (functionParmas.Length > 0) ? ", '"+functionParmas+"'" : "";
-		string eval=@"
-			FUNCTION_NAME(callback(CALLBACK_ID)PARAMETERS);
-		".Replace("FUNCTION_NAME", functionName)
-			.Replace(" PARAMETERS"  , functionParmas)
-			.Replace("CALLBACK_ID"  , ""+callback.id);
-		Debug2.LogDebug("callMailruByCallbackAndParams external evaluation: \n"+eval);
-		Application.ExternalEval(eval);
-	}
-	
-	
 	public void callMailruByParams(string functionName, params string[] parameters){		
 		string functionParmas=string.Join("', '",parameters);
 		functionParmas = (functionParmas.Length > 0) ? "'"+functionParmas+"'" : "";
@@ -66,6 +50,37 @@ public class MRUController : MonoSingleton<MRUController> {
 		".Replace("FUNCTION_NAME", functionName)
 			.Replace("PARAMETERS"  , functionParmas);	
 		Debug2.LogDebug("callMailruByParams external evaluation: \n"+eval);
+		Application.ExternalEval(eval);
+	}
+
+	
+	public void callMailruByCallbackAndParams(string functionName, Action<object, Callback> action, params object[] parameters){		
+		Callback callback= callbackPool.getCallback(CallbackType.DISPOSABLE);
+		callback.action = action;
+		string initialization="";
+		string functionParams="";
+		for (int i = 0; i < parameters.Length; i++) {
+			initialization+=@"
+				paramNUM=PARAMETER_JSON;	
+			".Replace("NUM",""+i)
+				.Replace("PARAMETER_JSON",Json.Serialize(parameters[i]));
+			functionParams+=", paramNUM".Replace("NUM",""+i);
+		}
+		string eval=@"
+			INITIALIZATION
+			
+			function _callbackCALLBACK_ID(result){ 
+				callback(CALLBACK_ID, result); 
+			}			
+
+			FUNCTION_NAME(_callbackCALLBACK_ID ADDITIONAL_PARAMETERS);
+		".Replace("INITIALIZATION",initialization)
+			.Replace("CALLBACK_ID",""+callback.id)
+				.Replace("FUNCTION_NAME", functionName)
+				.Replace("ADDITIONAL_PARAMETERS", functionParams);
+				
+				
+		Debug2.LogDebug("callMailruByCallbackAndParams external evaluation: \n"+eval);
 		Application.ExternalEval(eval);
 	}
 	
@@ -91,16 +106,16 @@ public class MRUController : MonoSingleton<MRUController> {
 		callback.action = action;
 		string eval=@"
 			function _callbackCALLBACK_ID(result){ 
-				result.originalProps=jQuery.parseJSON('PARAMS_JSON_STRING');
+				result.originalProps=PARAMS_JSON_STRING;
 				callback(CALLBACK_ID, result); 
 			}
 			var mailruEventId=mailru.events.listen(MAIL_RU_LISTEN_EVENT, _callbackCALLBACK_ID);
 			updateCallbackId(CALLBACK_ID, mailruEventId);
-			var params=jQuery.parseJSON('PARAMS_JSON_STRING');
+			var params=PARAMS_JSON_STRING;
 			FUNCTION_NAME(params);
 		".Replace("MAIL_RU_LISTEN_EVENT", mailruListenEvent)
 		  .Replace("CALLBACK_ID"         , ""+callback.id)
-		  .Replace("PARAMS_JSON_STRING"  , Json.Serialize(paramsObject))
+		  .Replace("PARAMS_JSON_STRING"  , 	Json.Serialize(paramsObject))
 		  .Replace("FUNCTION_NAME"       , functionName);
 
 		Debug2.LogDebug("callMailruByObjectMailruListenerAndCallback external evaluation: \n"+eval);
