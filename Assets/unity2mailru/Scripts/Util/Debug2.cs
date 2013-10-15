@@ -33,7 +33,7 @@ public class Debug2 {
 		Debug.Log(finalString);
 		string eval = @"
 			console.LOG('STRING');
-		".Replace("LOG",logType).Replace("STRING",finalString.Replace("'","\"").Replace(System.Environment.NewLine, "\\n") );		
+		".Replace("LOG",logType).Replace("STRING",finalString.Replace("'","\"").Replace("\n", "\\n").Replace("\r",""));		
 		Debug.Log("eval = "+eval);
 		Application.ExternalEval(eval);
 	}
